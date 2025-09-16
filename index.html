@@ -43,20 +43,6 @@
     button:hover {
       background: #004999;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      text-align: center;
-      padding: 8px;
-    }
-    th {
-      background: #0066cc;
-      color: #fff;
-    }
     .result-box {
       margin-top: 20px;
       padding: 15px;
@@ -71,13 +57,13 @@
     <h1>Kalkulator Deposito</h1>
 
     <label for="hadiah">Jumlah bunga hadiah yang diinginkan (maksimal 4%):</label>
-    <input type="number" id="hadiah" placeholder="contoh: 2000000" min="1">
+    <input type="number" id="hadiah" placeholder="contoh: 2000000" min="1000" step="1000">
 
-    <label for="tahun">Jangka waktu (1 - 10 tahun):</label>
+    <label for="tahun">Jangka waktu (1 - 3 tahun):</label>
     <select id="tahun">
       <option value="">--Pilih Tahun--</option>
       <script>
-        for (let i = 1; i <= 10; i++) {
+        for (let i = 1; i <= 3; i++) {
           document.write(`<option value="${i}">${i} Tahun</option>`);
         }
       </script>
@@ -97,60 +83,27 @@
         alert("Masukkan jumlah hadiah yang valid!");
         return;
       }
-      if (hadiah > 0.04) {
-        // maks 4% bukan nominal tapi persen
-        // kalau hadiah dianggap nominal (uang), maka lewati pengecekan ini
-      }
-      if (!tahun || tahun < 1 || tahun > 10) {
-        alert("Pilih jangka waktu 1 - 10 tahun!");
+      if (!tahun || tahun < 1 || tahun > 3) {
+        alert("Pilih jangka waktu 1 - 3 tahun!");
         return;
       }
 
-      // Pajak 20% untuk hadiah
+      // Pajak hadiah tidak ditampilkan, jadi langsung hitung dari hadiah
       let hadiahSebelumPajak = hadiah / 0.8;
 
-      // Rumus: hadiah = (pokok * 4% * tahun) - 20%
+      // Rumus: hadiah = (pokok * 4% * tahun) -> sebelum pajak
       let pokok = hadiahSebelumPajak / (0.04 * tahun);
 
-      // Bunga tetap 1% per tahun (kena pajak 20% juga)
-      let saldo = pokok;
-      let hasilTabel = `
+      // Pembulatan ke atas jutaan terdekat
+      let setoranBulat = Math.ceil(pokok / 1000000) * 1000000;
+
+      let hasil = `
         <div class="result-box">
-          <p><b>Jumlah setoran awal yang harus disetorkan:</b><br>Rp ${pokok.toLocaleString()}</p>
-          <p><b>Hadiah diterima (setelah pajak 20%):</b><br>Rp ${hadiah.toLocaleString()}</p>
+          <p><b>Jumlah setoran awal yang harus disetorkan:</b><br>Rp ${setoranBulat.toLocaleString()}</p>
         </div>
-        <h3>Perkembangan Saldo Deposito (Bunga 1% per tahun setelah pajak)</h3>
-        <table>
-          <tr>
-            <th>Tahun</th>
-            <th>Saldo Awal</th>
-            <th>Bunga 1%</th>
-            <th>Bunga Setelah Pajak (20%)</th>
-            <th>Saldo Akhir</th>
-          </tr>
       `;
 
-      for (let i = 1; i <= tahun; i++) {
-        let bunga = saldo * 0.01;
-        let bungaBersih = bunga * 0.8; // setelah pajak
-        let saldoAkhir = saldo + bungaBersih;
-
-        hasilTabel += `
-          <tr>
-            <td>${i}</td>
-            <td>Rp ${saldo.toLocaleString()}</td>
-            <td>Rp ${bunga.toLocaleString()}</td>
-            <td>Rp ${bungaBersih.toLocaleString()}</td>
-            <td>Rp ${saldoAkhir.toLocaleString()}</td>
-          </tr>
-        `;
-
-        saldo = saldoAkhir;
-      }
-
-      hasilTabel += "</table>";
-
-      document.getElementById('output').innerHTML = hasilTabel;
+      document.getElementById('output').innerHTML = hasil;
     }
   </script>
 </body>
