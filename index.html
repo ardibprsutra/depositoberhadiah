@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kalkulator Deposito</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #0066cc;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-top: 12px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    button {
+      background: #0066cc;
+      color: #fff;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #004999;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      text-align: center;
+      padding: 8px;
+    }
+    th {
+      background: #0066cc;
+      color: #fff;
+    }
+    .result-box {
+      margin-top: 20px;
+      padding: 15px;
+      background: #eaf6ff;
+      border-left: 5px solid #0066cc;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Kalkulator Deposito</h1>
+
+    <label for="hadiah">Jumlah bunga hadiah yang diinginkan (maksimal 4%):</label>
+    <input type="number" id="hadiah" placeholder="contoh: 2000000" min="1">
+
+    <label for="tahun">Jangka waktu (1 - 10 tahun):</label>
+    <select id="tahun">
+      <option value="">--Pilih Tahun--</option>
+      <script>
+        for (let i = 1; i <= 10; i++) {
+          document.write(`<option value="${i}">${i} Tahun</option>`);
+        }
+      </script>
+    </select>
+
+    <button onclick="hitungDeposito()">Hitung</button>
+
+    <div id="output"></div>
+  </div>
+
+  <script>
+    function hitungDeposito() {
+      let hadiah = parseFloat(document.getElementById('hadiah').value);
+      let tahun = parseInt(document.getElementById('tahun').value);
+
+      if (!hadiah || hadiah <= 0) {
+        alert("Masukkan jumlah hadiah yang valid!");
+        return;
+      }
+      if (hadiah > 0.04) {
+        // maks 4% bukan nominal tapi persen
+        // kalau hadiah dianggap nominal (uang), maka lewati pengecekan ini
+      }
+      if (!tahun || tahun < 1 || tahun > 10) {
+        alert("Pilih jangka waktu 1 - 10 tahun!");
+        return;
+      }
+
+      // Pajak 20% untuk hadiah
+      let hadiahSebelumPajak = hadiah / 0.8;
+
+      // Rumus: hadiah = (pokok * 4% * tahun) - 20%
+      let pokok = hadiahSebelumPajak / (0.04 * tahun);
+
+      // Bunga tetap 1% per tahun (kena pajak 20% juga)
+      let saldo = pokok;
+      let hasilTabel = `
+        <div class="result-box">
+          <p><b>Jumlah setoran awal yang harus disetorkan:</b><br>Rp ${pokok.toLocaleString()}</p>
+          <p><b>Hadiah diterima (setelah pajak 20%):</b><br>Rp ${hadiah.toLocaleString()}</p>
+        </div>
+        <h3>Perkembangan Saldo Deposito (Bunga 1% per tahun setelah pajak)</h3>
+        <table>
+          <tr>
+            <th>Tahun</th>
+            <th>Saldo Awal</th>
+            <th>Bunga 1%</th>
+            <th>Bunga Setelah Pajak (20%)</th>
+            <th>Saldo Akhir</th>
+          </tr>
+      `;
+
+      for (let i = 1; i <= tahun; i++) {
+        let bunga = saldo * 0.01;
+        let bungaBersih = bunga * 0.8; // setelah pajak
+        let saldoAkhir = saldo + bungaBersih;
+
+        hasilTabel += `
+          <tr>
+            <td>${i}</td>
+            <td>Rp ${saldo.toLocaleString()}</td>
+            <td>Rp ${bunga.toLocaleString()}</td>
+            <td>Rp ${bungaBersih.toLocaleString()}</td>
+            <td>Rp ${saldoAkhir.toLocaleString()}</td>
+          </tr>
+        `;
+
+        saldo = saldoAkhir;
+      }
+
+      hasilTabel += "</table>";
+
+      document.getElementById('output').innerHTML = hasilTabel;
+    }
+  </script>
+</body>
+</html>
