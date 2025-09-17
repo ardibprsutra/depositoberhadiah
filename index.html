@@ -51,24 +51,53 @@
       border-radius: 6px;
       font-size: 18px;
     }
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Kalkulator Deposito Ruby</h1>
 
-    <label for="hadiah">Harga barang hadiah yang diinginkan :</label>
-    <input type="text" id="hadiah" placeholder="contoh: 2.000.000">
-
-    <label for="tahun">Jangka waktu (1 - 3 tahun):</label>
-    <select id="tahun">
-      <option value="">--Pilih Tahun--</option>
-      <script>
-        for (let i = 1; i <= 3; i++) {
-          document.write(`<option value="${i}">${i} Tahun</option>`);
-        }
-      </script>
+    <label for="mode">Pilih Metode Perhitungan:</label>
+    <select id="mode" onchange="toggleMode()">
+      <option value="">--Pilih Mode--</option>
+      <option value="barang">Hitung berdasarkan harga barang</option>
+      <option value="deposito">Hitung berdasarkan jumlah deposito</option>
     </select>
+
+    <!-- Mode Barang -->
+    <div id="form-barang" class="hidden">
+      <label for="hadiah">Harga barang hadiah yang diinginkan :</label>
+      <input type="text" id="hadiah" placeholder="contoh: 2.000.000">
+
+      <label for="tahun1">Jangka waktu (1 - 3 tahun):</label>
+      <select id="tahun1">
+        <option value="">--Pilih Tahun--</option>
+        <script>
+          for (let i = 1; i <= 3; i++) {
+            document.write(`<option value="${i}">${i} Tahun</option>`);
+          }
+        </script>
+      </select>
+    </div>
+
+    <!-- Mode Deposito -->
+    <div id="form-deposito" class="hidden">
+      <label for="deposito">Jumlah deposito awal :</label>
+      <input type="text" id="deposito" placeholder="contoh: 100.000.000">
+
+      <label for="tahun2">Jangka waktu (1 - 3 tahun):</label>
+      <select id="tahun2">
+        <option value="">--Pilih Tahun--</option>
+        <script>
+          for (let i = 1; i <= 3; i++) {
+            document.write(`<option value="${i}">${i} Tahun</option>`);
+          }
+        </script>
+      </select>
+    </div>
 
     <button onclick="hitungDeposito()">Hitung</button>
 
@@ -76,16 +105,22 @@
   </div>
 
   <script>
-    // Format angka ribuan saat mengetik
-    const hadiahInput = document.getElementById('hadiah');
-    hadiahInput.addEventListener('input', function(e) {
-      let value = this.value.replace(/\D/g, ''); // hanya angka
-      if (value) {
-        this.value = new Intl.NumberFormat("id-ID").format(value);
-      } else {
-        this.value = "";
-      }
-    });
+    // Format input angka ribuan
+    function formatInput(id) {
+      const input = document.getElementById(id);
+      if (!input) return;
+      input.addEventListener('input', function () {
+        let value = this.value.replace(/\D/g, '');
+        if (value) {
+          this.value = new Intl.NumberFormat("id-ID").format(value);
+        } else {
+          this.value = "";
+        }
+      });
+    }
+
+    formatInput("hadiah");
+    formatInput("deposito");
 
     function getNumericValue(str) {
       return parseInt(str.replace(/\./g, '').replace(/,/g, '')) || 0;
@@ -100,35 +135,79 @@
       }).format(angka);
     }
 
+    function toggleMode() {
+      const mode = document.getElementById("mode").value;
+      document.getElementById("form-barang").classList.add("hidden");
+      document.getElementById("form-deposito").classList.add("hidden");
+
+      if (mode === "barang") {
+        document.getElementById("form-barang").classList.remove("hidden");
+      } else if (mode === "deposito") {
+        document.getElementById("form-deposito").classList.remove("hidden");
+      }
+      document.getElementById("output").innerHTML = "";
+    }
+
     function hitungDeposito() {
-      let hadiah = getNumericValue(document.getElementById('hadiah').value);
-      let tahun = parseInt(document.getElementById('tahun').value);
+      const mode = document.getElementById("mode").value;
+      let hasil = "";
 
-      if (!hadiah || hadiah <= 0) {
-        alert("Masukkan jumlah hadiah yang valid!");
+      if (mode === "barang") {
+        let hadiah = getNumericValue(document.getElementById("hadiah").value);
+        let tahun = parseInt(document.getElementById("tahun1").value);
+
+        if (!hadiah || hadiah <= 0) {
+          alert("Masukkan jumlah harga barang yang valid!");
+          return;
+        }
+        if (!tahun || tahun < 1 || tahun > 3) {
+          alert("Pilih jangka waktu 1 - 3 tahun!");
+          return;
+        }
+
+        // Hitung hadiah sebelum pajak (20%)
+        let hadiahSebelumPajak = hadiah / 0.8;
+        // Rumus: hadiah = (pokok * 4% * tahun)
+        let pokok = hadiahSebelumPajak / (0.04 * tahun);
+        // Pembulatan ke jutaan terdekat
+        let setoranBulat = Math.ceil(pokok / 1000000) * 1000000;
+
+        hasil = `
+          <div class="result-box">
+            <p><b>Jumlah setoran awal yang harus disetorkan:</b><br>${formatRupiah(setoranBulat)}</p>
+          </div>
+        `;
+      } 
+      else if (mode === "deposito") {
+        let deposito = getNumericValue(document.getElementById("deposito").value);
+        let tahun = parseInt(document.getElementById("tahun2").value);
+
+        if (!deposito || deposito <= 0) {
+          alert("Masukkan jumlah deposito yang valid!");
+          return;
+        }
+        if (!tahun || tahun < 1 || tahun > 3) {
+          alert("Pilih jangka waktu 1 - 3 tahun!");
+          return;
+        }
+
+        // Rumus hadiah sebelum pajak = deposito * 4% * tahun
+        let hadiahSebelumPajak = deposito * 0.04 * tahun;
+        // Setelah pajak (20%)
+        let hadiahBersih = hadiahSebelumPajak * 0.8;
+
+        hasil = `
+          <div class="result-box">
+            <p><b>Perkiraan nilai hadiah yang bisa didapat:</b><br>${formatRupiah(hadiahBersih)}</p>
+          </div>
+        `;
+      } 
+      else {
+        alert("Pilih metode perhitungan terlebih dahulu!");
         return;
       }
-      if (!tahun || tahun < 1 || tahun > 3) {
-        alert("Pilih jangka waktu 1 - 3 tahun!");
-        return;
-      }
 
-      // Hitung hadiah sebelum pajak (20%)
-      let hadiahSebelumPajak = hadiah / 0.8;
-
-      // Rumus: hadiah = (pokok * 4% * tahun)
-      let pokok = hadiahSebelumPajak / (0.04 * tahun);
-
-      // Pembulatan ke atas jutaan terdekat
-      let setoranBulat = Math.ceil(pokok / 1000000) * 1000000;
-
-      let hasil = `
-        <div class="result-box">
-          <p><b>Jumlah setoran awal yang harus disetorkan:</b><br>${formatRupiah(setoranBulat)}</p>
-        </div>
-      `;
-
-      document.getElementById('output').innerHTML = hasil;
+      document.getElementById("output").innerHTML = hasil;
     }
   </script>
 </body>
