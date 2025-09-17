@@ -105,6 +105,9 @@
   </div>
 
   <script>
+    // bunga tetap
+    const bunga = 0.035; // 3,5%
+
     // Format input angka ribuan
     function formatInput(id) {
       const input = document.getElementById(id);
@@ -167,9 +170,9 @@
 
         // Hitung hadiah sebelum pajak (20%)
         let hadiahSebelumPajak = hadiah / 0.8;
-        // Rumus: hadiah = (pokok * 4% * tahun)
-        let pokok = hadiahSebelumPajak / (0.04 * tahun);
-        // Pembulatan ke jutaan terdekat
+        // Rumus: hadiah = (pokok * bunga * tahun)
+        let pokok = hadiahSebelumPajak / (bunga * tahun);
+        // Pembulatan ke jutaan terdekat (ke atas)
         let setoranBulat = Math.ceil(pokok / 1000000) * 1000000;
 
         hasil = `
@@ -191,14 +194,16 @@
           return;
         }
 
-        // Rumus hadiah sebelum pajak = deposito * 4% * tahun
-        let hadiahSebelumPajak = deposito * 0.04 * tahun;
+        // Rumus hadiah sebelum pajak = deposito * bunga * tahun
+        let hadiahSebelumPajak = deposito * bunga * tahun;
         // Setelah pajak (20%)
         let hadiahBersih = hadiahSebelumPajak * 0.8;
+        // Dibulatkan ke bawah jutaan terdekat
+        let hadiahBulat = Math.floor(hadiahBersih / 1000000) * 1000000;
 
         hasil = `
           <div class="result-box">
-            <p><b>Perkiraan nilai hadiah yang bisa didapat:</b><br>${formatRupiah(hadiahBersih)}</p>
+            <p><b>Perkiraan nilai hadiah yang bisa didapat:</b><br>${formatRupiah(hadiahBulat)}</p>
           </div>
         `;
       } 
